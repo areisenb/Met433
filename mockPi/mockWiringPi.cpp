@@ -9,7 +9,7 @@
 #include "wiringPi.h"
 #include <unistd.h>
 
-#define MOCKFILE "mock.txt"
+#define MOCKFILE "mockPi/mock.txt"
 
 FILE *inFile = 0;
 long actTimeUS = -1;
