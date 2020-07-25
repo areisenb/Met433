@@ -1,6 +1,6 @@
 # Met433
-a small utility to receive reports from misc 433MHz weather sensors for further discovery with
-prometheus/grafana running on the Raspi
+a small utility running at Raspi to receive reports from misc 433MHz weather sensors for further examination with
+prometheus/grafana
 
 # Motivation
 Even if I thought there is already something out there, I just need to take, I could not find something
