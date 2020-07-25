@@ -8,7 +8,11 @@
 // data between two successive sync signals
 
 
-#include <wiringPi.h>
+#ifdef MOCKWIRINGPI
+  #include "mockPi/wiringPi.h"
+#else
+  #include <wiringPi.h>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
