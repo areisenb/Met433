@@ -85,6 +85,8 @@ int CSequencer::addBit (char cBit) {
   if (rxDbgBufIdx > RX_DBG_BUFFER_SIZE) {
     rxDbgBufIdx =  RX_DBG_BUFFER_SIZE;
     rxDbgBuffer [rxDbgBufIdx] = '.';
+    /* more than 40 Byte of scrap finishes reception as well */
+    cRcvState = 'N';
   }
   if (rxBufIdx/8 > RX_BUFFER_SIZE)
     cRcvState = 'N';
