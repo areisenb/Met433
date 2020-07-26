@@ -15,6 +15,8 @@ FILE *inFile = 0;
 long actTimeUS = -1;
 /* we only support one single delay thread */
 long finTimeUS = -1;
+bool bInputIsLogicalOne;
+
 pthread_mutex_t delayMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t delayCond = PTHREAD_COND_INITIALIZER;
 
@@ -23,6 +25,11 @@ handler_t intHandler = NULL;
 
 static void* thread_worker(void *name);
 int scheduleDelay (void);
+int issigneddigit( int arg );
+
+int issigneddigit( int arg ) {
+    return ((isdigit (arg) || arg == '-' || arg == '+') ? 1 : 0);
+}
 
 int wiringPiSetup (void) {
     long waited = 0;
@@ -37,7 +44,7 @@ int wiringPiSetup (void) {
     return 0;
 }
 
-int readNextLong (long* plRet, FILE* inFile) {
+int readNextLong (long* plRet, bool* pbNegPulse, FILE* inFile) {
     bool inComment = false;
     static int nLine = 1;
     static int nCol = 0;
@@ -54,14 +61,14 @@ int readNextLong (long* plRet, FILE* inFile) {
             continue;
         else if (c=='#') {
             inComment = true;
-        } else if (!(isspace(c) || isdigit(c) || (c==','))) {
+        } else if (!(isspace(c) || issigneddigit(c) || (c==','))) {
             fprintf (stderr,
                 "illegal character %c at line %d col %d\n",
                 c, nLine, nCol);
             return (EOF);
         }
 
-        if (isdigit (c) ) {
+        if (issigneddigit (c) ) {
             if (strlen (szDigits) < (sizeof (szDigits) -1)) {
                 *cp++ = c;
                 *cp = 0;
@@ -71,8 +78,14 @@ int readNextLong (long* plRet, FILE* inFile) {
                     szDigits, nLine, nCol);
                 return (EOF);
             }
-        } else if (*szDigits)
-                return sscanf (szDigits, "%ld", plRet);
+        } else if (*szDigits) {
+            long lRet;
+            int nRet = sscanf (szDigits, "%ld", &lRet);
+            *pbNegPulse = lRet < 0;
+            *plRet = abs (lRet);
+            return nRet;
+
+        }
     }
     return (EOF);
 }
@@ -87,7 +100,8 @@ static void* thread_worker(void *name) {
         exit (EXIT_FAILURE);
     }
 
-    while (readNextLong (&lDuration, inFile) != EOF) {
+    /* if it was a negative pulse, we now have a logical one as input */
+    while (readNextLong (&lDuration, &bInputIsLogicalOne, inFile) != EOF) {
         actTimeUS += lDuration;
         if (intHandler) {
             intHandler ();
@@ -129,6 +143,10 @@ int wiringPiISR (int datapin,int edge, handler_t handler) {
 
 long micros (void) {
     return actTimeUS;
+}
+
+int digitalRead (int pin) {
+    return (bInputIsLogicalOne ? 1 : 0);
 }
 
 void delay (int nMS) {
