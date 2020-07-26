@@ -20,7 +20,7 @@ class CSequencer {
     char rxDbgBuffer [RX_DBG_BUFFER_SIZE + 1];
     int rxBufIdx;
     int rxDbgBufIdx;
-    bool bRXError;
+    int nFirstRXError;
 
     void clear ();
     unsigned char push1Bit (int bufIdx, unsigned char ucByte);
@@ -38,7 +38,7 @@ class CSequencer {
     void init (char cBit);
     int addBit (char cBit);
     CSequencer* finish ();
-    bool readData (char szOut [], int* pBitLen);
+    void readData (char szOut [], int* pBitLen, int* pFirstErrIdx);
 
     char* showStatus ();
     char* getHexBuffer();

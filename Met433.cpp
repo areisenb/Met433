@@ -72,7 +72,8 @@ char* decodeMessage (CSequencer* pSeq) {
   int nDeziTemp; // to avoid any floating point operations
   int nHumidity;
   int nMsgBitLen = sizeof (szMsg)*8 - 1;
-  bool bOK = pSeq->readData (szMsg, &nMsgBitLen);
+  int nErrorIndex;
+  pSeq->readData (szMsg, &nMsgBitLen, &nErrorIndex);
 
   *cp = 0;
   if (*szMsg == 0)
@@ -92,8 +93,11 @@ char* decodeMessage (CSequencer* pSeq) {
   }
   cp += sprintf (cp, "Byte 0: %02X ", (unsigned char) szMsg[0]);
   cp += sprintf (cp, "Byte 1: %02X ", (unsigned char) szMsg[1]);
-  if (!bOK)
-    cp += sprintf (cp, "ERROR in detection");
+  if (nErrorIndex > 0)
+    /* no errors is even best */
+    if (nErrorIndex < 5*8 - 4)
+      /* we do not worry about 6 Byte's lower nibble or later */
+      cp += sprintf (cp, "ERROR in detection at Bit %d", nErrorIndex);
   cp += sprintf (cp, "\n");
   return szOut;
 }

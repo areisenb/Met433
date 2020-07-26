@@ -46,7 +46,7 @@ void CSequencer::clear () {
   memset (rxDbgBuffer, 0, sizeof (rxDbgBuffer));
   rxBufIdx = 0;
   rxDbgBufIdx = 0;
-  bRXError = false;
+  nFirstRXError = -1;
   cRcvState = 'I'; // we start in idle state
 }
 
@@ -78,7 +78,7 @@ int CSequencer::addBit (char cBit) {
       /* perfekt - theoretically we should check is Bit is followed by a MARK */
       break;
     default:
-      bRXError = true;
+      nFirstRXError = rxBufIdx;
       break;
   }
   rxDbgBuffer [rxDbgBufIdx++] = cBit;
@@ -110,29 +110,34 @@ char* CSequencer::showStatus () {
   return szOut;
 }
 
-bool CSequencer::readData (char szOut [], int* pBitLen) {
+void CSequencer::readData (char szOut [], int* pBitLen, int* pFirstErrIdx) {
   if (!hasReceived ()) {
     szOut[0] = 0;
-    return false;
+    *pFirstErrIdx = 0;
   }
 
   *pBitLen = (*pBitLen < (rxBufIdx+1)) ? *pBitLen : rxBufIdx+1;
   memcpy (szOut, rxBuffer, (*pBitLen-1)/8+1);
-  return !bRXError;
+  *pFirstErrIdx = nFirstRXError;
 }
 
 char* CSequencer::getHexBuffer() {
   static char szOut [1024] = ""; // not the cleanest way
   char* cpOut = szOut;
+  static char szTemp [80] = "";
 
   if (!hasReceived ()) {
     sprintf (cpOut, "nothing received yet\n");
     return szOut;
   }
 
-  cpOut += sprintf(cpOut, "RX Buffer %d Bits received with%s errors until %s\n", 
+  if (nFirstRXError < 0)
+    strcpy (szTemp, "without any errors");
+  else
+    sprintf (szTemp, "with errors from Bit %d on", nFirstRXError);
+  cpOut += sprintf(cpOut, "RX Buffer %d Bits received %s until %s\n",
     rxBufIdx,
-    bRXError ? "" : "out",
+    szTemp,
     cRcvState == 'R' ? "next sync" :
     cRcvState == 'N' ? "buffer full" : "???");
   for (int i = 0; i < (sizeof (rxBuffer) / 16); i++) {
