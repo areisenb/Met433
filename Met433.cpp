@@ -90,8 +90,8 @@ char* decodeMessage (CSequencer* pSeq) {
     nHumidity = (szMsg[3] & 0x0F) * 16 + szMsg[4] / 16;
     cp += sprintf (cp, "humidity: %d%% ", nHumidity);
   }
-  cp += sprintf (cp, "Byte 0: %02X ", szMsg[0]);
-  cp += sprintf (cp, "Byte 1: %02X ", szMsg[1]);
+  cp += sprintf (cp, "Byte 0: %02X ", (unsigned char) szMsg[0]);
+  cp += sprintf (cp, "Byte 1: %02X ", (unsigned char) szMsg[1]);
   if (!bOK)
     cp += sprintf (cp, "ERROR in detection");
   cp += sprintf (cp, "\n");
