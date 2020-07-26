@@ -120,7 +120,7 @@ char bitDetector (long t2, long t1, long t0) {
         bitRet = 'P'; //SPIKE PULS
     /* we want a valid seperator before any bit and the sync pulse, and those
         pulses need to be negative pulses */
-    if (strchr ("STF", bitRet) && (!bWasValidSep) || (digitalRead (DATA_PIN) !=1))
+    if (strchr ("STF", bitRet) && ((!bWasValidSep) || (digitalRead (DATA_PIN) !=1)))
         bitRet = tolower (bitRet);
     return bitRet;
 }
